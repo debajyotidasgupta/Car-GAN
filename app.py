@@ -1,16 +1,21 @@
+from email.policy import default
 import numpy as np
 import streamlit as st
 import tensorflow as tf
 from PIL import ImageEnhance
 from tensorflow.keras import layers
+from tensorflow.keras.utils import array_to_img, img_to_array
 
 st.title("Car GAN")
 
 """
-This is a demonstration application built to show the working of Generative Advesarial Network which uses the ideas from 
+This is a demonstration application built to show the working of Generative Advesarial Network which uses the ideas from
 [DCGAN](https://arxiv.org/pdf/2006.14380.pdf), [WGAN](https://arxiv.org/pdf/2006.14380.pdf) and [BoolGAN](https://arxiv.org/pdf/2006.14380.pdf).
 This application is built using [Streamlit](https://streamlit.io/) as a part of MBRDI's Datathon orkanized in [KSHITIJ 2022](https://ktj.in/)
 """
+
+model = None
+contrast, brightness, rows, cols = 1.0, 1.0, 5, 5
 
 
 def make_generator_model():
@@ -79,7 +84,7 @@ def get_model():
                                      discriminator=discriminator)
 
     # Debug generator weights
-    checkpoint.restore('./training_checkpoints/ckpt-17')
+    checkpoint.restore('training_checkpoints\\training_checkpoints\\ckpt-30')
     return generator
 
 
@@ -91,20 +96,32 @@ st.success('Model loaded successfully!!')
 def generate_image(random_vector_for_generation):
     generated_image = model(random_vector_for_generation, training=False)
     generated_image = tf.squeeze(generated_image)
-    generated_image = tf.cast(generated_image, tf.uint8)
+    generated_image = tf.math.divide(tf.math.add(generated_image, 1), 2)
     return generated_image.numpy()
 
 
+st.sidebar.title("Parameters")
+contrast = st.sidebar.slider('Contrast', 0.1, 5.0, 1.4)
+brightness = st.sidebar.slider('Brightness', 0.1, 5.0, 1.1)
+cols = st.sidebar.slider('Columns', 1, 10, 5)
+rows = st.sidebar.slider('Rows', 1, 10, 5)
+
+
+def display_grid():
+    images = np.zeros((128*rows, 128*cols, 3))
+    for x in range(rows):
+        for y in range(cols):
+            random_vector_for_generation = tf.random.normal([1, 100])
+            generated_image = generate_image(random_vector_for_generation)
+            images[x*128:(x+1)*128, y*128:(y+1)*128, :] = generated_image
+
+    clear_image = array_to_img(images)
+    clear_image = ImageEnhance.Contrast(clear_image).enhance(contrast)
+    clear_image = ImageEnhance.Brightness(clear_image).enhance(brightness)
+    images = img_to_array(clear_image) / 255.
+
+    st.image(images, use_column_width=True)
+
+
 if st.button("Generate"):
-    # images = np.zeros((640, 640, 3))
-    # for i in range(25):
-    #     random_vector_for_generation = tf.random.normal([1, 100])
-    #     generated_image = generate_image(random_vector_for_generation)
-
-    #     x = i % 5
-    #     y = i // 5
-    #     images[x*128:(x+1)*128, y*128:(y+1)*128, :] = generated_image
-
-    random_vector_for_generation = tf.random.normal([1, 100])
-    images = generate_image(random_vector_for_generation)
-    st.image(images, width=128)
+    display_grid()
