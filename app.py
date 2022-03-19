@@ -1,4 +1,5 @@
 from email.policy import default
+import time
 import numpy as np
 import streamlit as st
 import tensorflow as tf
@@ -11,11 +12,11 @@ st.title("Car GAN")
 """
 This is a demonstration application built to show the working of Generative Advesarial Network which uses the ideas from
 [DCGAN](https://arxiv.org/pdf/2006.14380.pdf), [WGAN](https://arxiv.org/pdf/2006.14380.pdf) and [BoolGAN](https://arxiv.org/pdf/2006.14380.pdf).
-This application is built using [Streamlit](https://streamlit.io/) as a part of MBRDI's Datathon orkanized in [KSHITIJ 2022](https://ktj.in/)
+This application is built using [Streamlit](https://streamlit.io/) as a part of MBRDI's Datathon organized in [KSHITIJ 2022](https://ktj.in/)
 """
 
 model = None
-contrast, brightness, rows, cols = 1.0, 1.0, 5, 5
+contrast, brightness, rows, cols, infer = 1.0, 1.0, 5, 5, 0.0
 
 
 def make_generator_model():
@@ -105,15 +106,25 @@ contrast = st.sidebar.slider('Contrast', 0.1, 5.0, 1.4)
 brightness = st.sidebar.slider('Brightness', 0.1, 5.0, 1.1)
 cols = st.sidebar.slider('Columns', 1, 10, 5)
 rows = st.sidebar.slider('Rows', 1, 10, 5)
+st.sidebar.info("""
+    This application is built using [Streamlit](https://streamlit.io/) as a part of MBRDI's Datathon organized in [KSHITIJ 2022](https://ktj.in/)
+    """)
 
 
 def display_grid():
+    start_time = time.time()
     images = np.zeros((128*rows, 128*cols, 3))
     for x in range(rows):
         for y in range(cols):
             random_vector_for_generation = tf.random.normal([1, 100])
             generated_image = generate_image(random_vector_for_generation)
             images[x*128:(x+1)*128, y*128:(y+1)*128, :] = generated_image
+    end_time = time.time()
+
+    global infer
+    infer = (end_time - start_time) * 1000 / (rows * cols)
+    print(f"Average inference time: {infer:.2f} ms")
+    st.sidebar.warning(f"Average inference time: {infer:.2f} ms")
 
     clear_image = array_to_img(images)
     clear_image = ImageEnhance.Contrast(clear_image).enhance(contrast)
