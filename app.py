@@ -104,6 +104,7 @@ st.success('Model loaded successfully!!')
 
 
 def generate_image(random_vector_for_generation):
+    # function to generate images
     generated_image = model(random_vector_for_generation, training=False)
     generated_image = tf.squeeze(generated_image)
     generated_image = tf.math.divide(tf.math.add(generated_image, 1), 2)
