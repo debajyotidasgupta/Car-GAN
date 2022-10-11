@@ -27,6 +27,7 @@ contrast, brightness, rows, cols, infer = 1.0, 1.0, 5, 5, 0.0
 
 
 def make_generator_model():
+    # function to create model for the generator
     model = tf.keras.Sequential()
     model.add(layers.Dense(8*8*256, use_bias=False, input_shape=(100,)))
     model.add(layers.BatchNormalization())
