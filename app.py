@@ -1,3 +1,10 @@
+#######################################
+#                                     #
+#    STREAMLIT APP BASED GAN          #
+#                                     #
+#######################################
+
+
 from email.policy import default
 import time
 import numpy as np
